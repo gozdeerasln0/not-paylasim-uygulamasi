@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "841771409037",
+    "project_id": "notpaylasimapp-6ef6c",
+    "storage_bucket": "notpaylasimapp-6ef6c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:841771409037:android:6013771f2f2fd0471b4cc4",
+        "android_client_info": {
+          "package_name": "com.example.not_paylasim"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBZvynrk4MbTYp5tECxF0uI4WoTo_7pX4o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
