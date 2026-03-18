@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+
+import 'firebase_options.dart';
 import 'screens/login_screen.dart';
 import 'services/note_service.dart';
-
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 1) Firebase başlat
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // 2) Senin mevcut local init'in (şimdilik kalsın)
   await NoteService.init();
 
   runApp(const MyApp());

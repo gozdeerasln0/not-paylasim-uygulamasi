@@ -4,15 +4,16 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/note.dart';
 
 class NoteService {
-  static final _auth = FirebaseAuth.instance;
-  static final _db = FirebaseFirestore.instance;
+  static final FirebaseAuth _auth = FirebaseAuth.instance;
+  static final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   static final List<Note> _notes = [];
-  static StreamSubscription? _sub;
-
-  static final _controller = StreamController<List<Note>>.broadcast();
+  static StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _sub;
+  static final StreamController<List<Note>> _controller =
+      StreamController<List<Note>>.broadcast();
 
   static Stream<List<Note>> watch() => _controller.stream;
+
   static List<Note> getAll() => List.unmodifiable(_notes);
 
   static List<Note> getFavorites() =>
@@ -20,8 +21,9 @@ class NoteService {
 
   static bool get isLoggedIn => _auth.currentUser != null;
 
-  static CollectionReference<Map<String, dynamic>> _col(String uid) =>
-      _db.collection('users').doc(uid).collection('notes');
+  static CollectionReference<Map<String, dynamic>> _col(String uid) {
+    return _db.collection('users').doc(uid).collection('notes');
+  }
 
   static Future<void> init() async {
     if (!isLoggedIn) return;
@@ -61,11 +63,13 @@ class NoteService {
       final list = snap.docs
           .map((d) {
             final data = d.data();
+
             return Note(
               id: d.id,
               title: (data['title'] ?? '') as String,
               content: (data['content'] ?? '') as String,
               isFavorite: (data['isFavorite'] ?? false) as bool,
+              pdfUrl: data['pdfUrl'] as String?,
             );
           })
           .toList(growable: false);
@@ -81,11 +85,11 @@ class NoteService {
   static Future<void> add(Note note) async {
     final uid = _auth.currentUser!.uid;
 
-    // ✅ createdAt'i client tarafında veriyoruz ki anında listeye düşsün
     await _col(uid).add({
       'title': note.title,
       'content': note.content,
       'isFavorite': note.isFavorite,
+      'pdfUrl': note.pdfUrl,
       'createdAt': Timestamp.now(),
     });
   }
@@ -93,16 +97,23 @@ class NoteService {
   static Future<void> update(
     String id,
     String newTitle,
-    String newContent,
-  ) async {
+    String newContent, {
+    String? pdfUrl,
+  }) async {
     final uid = _auth.currentUser!.uid;
-    await _col(uid).doc(id).update({'title': newTitle, 'content': newContent});
+
+    await _col(uid).doc(id).update({
+      'title': newTitle,
+      'content': newContent,
+      'pdfUrl': pdfUrl,
+    });
   }
 
   static Future<void> toggleFavorite(String id) async {
     final uid = _auth.currentUser!.uid;
     final ref = _col(uid).doc(id);
     final doc = await ref.get();
+
     if (!doc.exists) return;
 
     final current = (doc.data()?['isFavorite'] ?? false) as bool;

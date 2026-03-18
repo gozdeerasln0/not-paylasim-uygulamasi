@@ -2,25 +2,34 @@ class Note {
   final String id;
   final String title;
   final String content;
-  bool isFavorite;
+  final bool isFavorite;
+  final String? pdfUrl;
 
   Note({
     required this.id,
     required this.title,
     required this.content,
-    this.isFavorite = false,
+    required this.isFavorite,
+    this.pdfUrl,
   });
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'title': title,
-    'content': content,
-    'isFavorite': isFavorite,
-  };
 
-  factory Note.fromJson(Map<String, dynamic> json) => Note(
-    id: json['id'] as String,
-    title: json['title'] as String,
-    content: json['content'] as String,
-    isFavorite: (json['isFavorite'] as bool?) ?? false,
-  );
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'content': content,
+      'isFavorite': isFavorite,
+      'pdfUrl': pdfUrl,
+    };
+  }
+
+  factory Note.fromMap(Map<String, dynamic> map) {
+    return Note(
+      id: map['id'] ?? '',
+      title: map['title'] ?? '',
+      content: map['content'] ?? '',
+      isFavorite: map['isFavorite'] ?? false,
+      pdfUrl: map['pdfUrl'],
+    );
+  }
 }

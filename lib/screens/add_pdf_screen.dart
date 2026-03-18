@@ -12,64 +12,48 @@ class AddPdfScreen extends StatefulWidget {
 class _AddPdfScreenState extends State<AddPdfScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _tagsController = TextEditingController();
-
-  bool _picked = false;
-  String _fakeFileName = "";
+  final TextEditingController _pdfUrlController = TextEditingController();
 
   @override
   void dispose() {
     _titleController.dispose();
     _tagsController.dispose();
+    _pdfUrlController.dispose();
     super.dispose();
   }
 
-  void _pickPdfSimulated() {
-    // PDF seçiyormuş gibi yapıyoruz
-    setState(() {
-      _picked = true;
-      _fakeFileName =
-          "ders_notlari_${DateTime.now().millisecondsSinceEpoch}.pdf";
-      if (_titleController.text.trim().isEmpty) {
-        _titleController.text = "PDF Notu";
-      }
-    });
-  }
-
-  void _save() {
-    if (!_picked) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Önce PDF seç (simülasyon)")),
-      );
-      return;
-    }
-
+  Future<void> _save() async {
     final title = _titleController.text.trim();
     final tagsRaw = _tagsController.text.trim();
+    final pdfUrl = _pdfUrlController.text.trim();
 
-    final content =
-        """
-📄 Dosya: $_fakeFileName
-🏷️ Etiketler: ${tagsRaw.isEmpty ? "-" : tagsRaw}
-"""
-            .trim();
+    if (pdfUrl.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("PDF linki girmelisin")));
+      return;
+    }
 
     final note = Note(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       title: title.isEmpty ? "PDF Notu" : title,
-      content: content,
+      content: "Etiketler: ${tagsRaw.isEmpty ? "-" : tagsRaw}",
       isFavorite: false,
+      pdfUrl: pdfUrl,
     );
 
-    NoteService.add(note);
+    await NoteService.add(note);
 
-    Navigator.pop(context); // geri dön
+    if (mounted) {
+      Navigator.pop(context);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("PDF Ekle (Simülasyon)"),
+        title: const Text("PDF Linki Ekle"),
         centerTitle: true,
         actions: [IconButton(icon: const Icon(Icons.check), onPressed: _save)],
       ),
@@ -77,27 +61,19 @@ class _AddPdfScreenState extends State<AddPdfScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            ElevatedButton.icon(
-              onPressed: _pickPdfSimulated,
-              icon: const Icon(Icons.picture_as_pdf),
-              label: const Text("PDF Seç (Simülasyon)"),
-            ),
-            const SizedBox(height: 12),
-            if (_picked)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(),
-                ),
-                child: Text("Seçilen dosya: $_fakeFileName"),
-              ),
-            const SizedBox(height: 16),
             TextField(
               controller: _titleController,
               decoration: const InputDecoration(
                 labelText: "Başlık",
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _pdfUrlController,
+              decoration: const InputDecoration(
+                labelText: "PDF Linki",
+                hintText: "https://...pdf",
                 border: OutlineInputBorder(),
               ),
             ),
